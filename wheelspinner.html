@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>15 Locked Wheel Spinners</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #020617;
+      color: white;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 40px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #cbd5e1;
+      margin-bottom: 30px;
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .reset-btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .reset-btn:hover {
+      background: #818cf8;
+    }
+
+    .wheel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
+      gap: 24px;
+      max-width: 1600px;
+      margin: auto;
+    }
+
+    .wheel-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 24px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .wheel-title {
+      margin-bottom: 15px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 480px;
+      height: 480px;
+      margin: auto;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
+      color: red;
+      z-index: 10;
+    }
+
+    .wheel {
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      border: 5px solid white;
+      position: relative;
+      transition: transform 3.2s ease-out;
+      overflow: hidden;
+    }
+
+    .wheel-center {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: #020617;
+      border-radius: 50%;
+      border: 3px solid white;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+    .segment-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: left center;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      white-space: nowrap;
+    }
+
+    .spin-btn {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .spin-btn.active {
+      background: #22c55e;
+      color: black;
+    }
+
+    .spin-btn.active:hover {
+      background: #4ade80;
+    }
+
+    .spin-btn.spinning {
+      background: #eab308;
+      color: black;
+      cursor: wait;
+    }
+
+    .spin-btn.locked {
+      background: #475569;
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    .result {
+      margin-top: 18px;
+      min-height: 50px;
+    }
+
+    .result-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: #94a3b8;
+      margin-bottom: 5px;
+    }
+
+    .result-text {
+      font-size: 18px;
+      font-weight: bold;
+      color: #86efac;
+    }
+  </style>
+</head>
+<body>
+  <h1>15 Locked Wheel Spinners</h1>
+  <div class="subtitle">
+    Each wheel can only be spun once. After spinning, it locks permanently until reset.
+  </div>
+
+  <div class="top-controls">
+    <button class="reset-btn" onclick="resetAll()">Reset All Wheels</button>
+  </div>
+
+  <div class="wheel-grid" id="wheelGrid"></div>
+
+  <script>
+    const wheelGrid = document.getElementById('wheelGrid');
+    const wheels = [];
+
+    const colors = [
+      '#38bdf8',
+      '#8b5cf6',
+      '#22c55e',
+      '#f59e0b',
+      '#ef4444',
+      '#06b6d4',
+      '#e879f9',
+      '#84cc16',
+      '#f97316',
+      '#14b8a6'
+    ];
+
+    // =====================================================
+    // EDIT YOUR WHEEL OPTIONS HERE
+    // Each wheel has its own separate option list.
+    // You can add/remove/change any options you want.
+    // =====================================================
+
+    const wheelData = [
+  {
+    title: 'Tier Extrafunmode - easy',
+    options: ['Clothing Control!','XXL!','Double Time!','Advantage!','Filled!','Blowup!','Slutdice!','Mistressdice!','Canvas!','Crazymode!']
+  },
+  {
+    title: 'Tier Dress up - easy',
+    options: ['Underwear','Catsuit','Bathingsuit','Revealing','Miniskirt and Belt','Stocking and Gloves','Lingerieset','Maid-Costume','Summerdress','Nude']
+  },
+  {
+    title: 'Tier Accessoires - hard',
+    options: ['Cat ears','Choker','Makeup','Rings','Necklace','Wristchains','Overknees','High Heels','Garter Belt','Ear rings']
+  },
+  {
+    title: 'Tier Cleaning Enema - easy',
+    options: ['1 Liter, 1 Round','1 Liter, 2 Rounds','1.5 Liter, 1 Round','1.5 Liter, 2 Rounds','2 Liter, 1 Round','2 Liter, 2 Rounds','Deepclean 3 Rounds','Deepclean 4 Rounds','Flushing','Flushing strong']
+  },
+  {
+    title: 'Tier Homeoffice Modificators - medium',
+    options: ['Ballgag if possible','Nipple Clamps','Mini skirt','Sounding vibrator','Catheter','Spreadbar','Clit-weights','Speculum pussy','Speculum ass','Doppeldildo']
+  },
+  {
+    title: 'Tier Sleep Modificators - medium',
+    options: ['Naked','Bare bed','Hourly alarm','Analhook and collar','Catheter','Ring gag + speculums','Chastity Belt','Bodywriting + Ropeharness','Full power vibrator','Double toys']
+  },
+  {
+    title: 'Tier Hidden Public - medium',
+    options: ['No underwear','Dress','Rope Harness','Bodywriting','Tack-Bra','Sounding Rod','Vibroegg Pussy','Vibroegg Ass','1L Enema+Plug','Rubberpanties']
+  },
+  {
+    title: 'Tier Tits - medium/hard',
+    options: ['Pulling nipples','Squeezing nipples','Twisting nipples','Ice on nipples','Sucking nipples','Nipple clamps','Tape vibrator','Rubber band snaps','Hot wax','Cable ties']
+  },
+  {
+    title: 'Tier Sounding/Urethra - easy',
+    options: ['Stretching','Catheter','Vibrator Sounding','Hotwax','Chili Insertion','Pen Insertion','10 Min','Fill Water','Fill Uncommon Fluid','Fill Evil']
+  },
+  {
+    title: 'Tier Pussy Toys - easy',
+    options: ['Pantystuffing','Fruits','Speculum','Big Plug','Big Dildo','Big Vibrator','Inflateable Plug','Bullet Vibes','Analbeads','Candles']
+  },
+  {
+    title: 'Tier Ass Toys - easy',
+    options: ['Vegetable','Bottle','Multiple small vibes','Big Plug','Big Dildo','Big Vibrator','Inflateable Plug','Bullet Vibes','Analbeads','Speculum']
+  },
+  {
+    title: 'Tier Deep-Toy - easy',
+    options: ['Marbles','Vibroegg','Ü-Ei','Icecube','Peas','Boba-Tea Bubbles','Dices','Gummybears','Cooked cold Rice','Decor Stones']
+  },
+  {
+    title: 'Tier Bodywriting - hard',
+    options: ['Forehead','Arms','Legs','Back','Chest','Tights','Pussy','Ass','Collar bone','Face']
+  },
+  {
+    title: 'Tier Pain - hard',
+    options: ['Hotwax','Clamps','Electro','Nettles','Tackbra','Hair brush','Tit binding','Figging','Hotsauce','Tongue clamp']
+  },
+  {
+    title: 'Tier Weights - medium',
+    options: ['1 each nipple','1 outer labia','1 inner labia','1 clit','2 each nipple','2 outer labia','2 inner labia','2 clit','1 everywhere','2 everywhere']
+  },
+  {
+    title: 'Tier Humiliation - medium',
+    options: ['Bowl on the ground','Mirror finish','3 edges','Used sock gag','Kneeling','Collaring','All fours','Confess something','Scrub bathroom','Workout']
+  },
+  {
+    title: 'Tier Bondage - medium',
+    options: ['Gag','Collar with leash','Wrist cuffs','Ankle cuffs','Breast harness','Rope harness','Crotch harness','Corsett','Spreader bar','Chastity belt']
+  },
+  {
+    title: 'Tier Enema - hard',
+    options: ['Coffee/tea','Water','Wine','Hot sauce','Syrup','Soap','Milk','Raw eggs','Juice','Oil']
+  },
+  {
+    title: 'Tier Diet - medium',
+    options: ['Raw food only','Healthy diet','Weight loss diet','Forced feeding','Dog/cat food','Garbage leftovers','Skip meal','Water and bread','Spicy meal','Junkfood']
+  },
+  {
+    title: 'Tier Ending - medium',
+    options: ['Belly Inflation','Swallow Marbles','Bladder Fill','Meals in Pussy','Punishment Enema','Chastitybelt 1 Week','2 Hour vibroegg','Clothing Restrictions','Fucking Machine','24h Rubberpanties']
+  }
+];
+
+    // OLD FORMAT BELOW REMOVED
+
+    const wheelOptions = [
+      [
+        'Add your Wheel 1 Option 1 here',
+        'Add your Wheel 1 Option 2 here'
+      ],
+
+      [
+        'Add your Wheel 2 Option 1 here',
+        'Add your Wheel 2 Option 2 here'
+      ],
+
+      [
+        'Add your Wheel 3 Option 1 here',
+        'Add your Wheel 3 Option 2 here'
+      ],
+
+      [
+        'Add your Wheel 4 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 5 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 6 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 7 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 8 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 9 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 10 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 11 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 12 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 13 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 14 Option 1 here'
+      ],
+
+      [
+        'Add your Wheel 15 Option 1 here'
+      ]
+    ];
+
+    function createWheel(index) {
+      const wheelInfo = wheelData[index] || {
+        title: `Wheel ${index + 1}`,
+        options: ['No Options Added']
+      };
+
+      const options = wheelInfo.options;
+
+      const card = document.createElement('div');
+      card.className = 'wheel-card';
+
+      const title = document.createElement('div');
+      title.className = 'wheel-title';
+      title.textContent = wheelInfo.title;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'wheel-wrapper';
+
+      const pointer = document.createElement('div');
+      pointer.className = 'pointer';
+      pointer.textContent = '▼';
+
+      const wheel = document.createElement('div');
+      wheel.className = 'wheel';
+
+      const segmentAngle = 360 / options.length;
+
+      const gradientParts = colors.map((color, i) => {
+        const start = i * segmentAngle;
+        const end = (i + 1) * segmentAngle;
+        return `${color} ${start}deg ${end}deg`;
+      });
+
+      wheel.style.background = `conic-gradient(${gradientParts.join(',')})`;
+
+      options.forEach((option, i) => {
+        const label = document.createElement('div');
+        label.className = 'segment-label';
+
+        const angle = i * segmentAngle;
+        label.style.transform = `rotate(${angle}deg) translateX(70px)`;
+        label.textContent = option;
+
+        wheel.appendChild(label);
+      });
+
+      const center = document.createElement('div');
+      center.className = 'wheel-center';
+
+      wheel.appendChild(center);
+
+      wrapper.appendChild(pointer);
+      wrapper.appendChild(wheel);
+
+      const button = document.createElement('button');
+      button.className = 'spin-btn active';
+      button.textContent = 'Spin Once';
+
+      const modeContainer = document.createElement('div');
+      modeContainer.style.marginTop = '15px';
+      modeContainer.innerHTML = `
+        <select class="mode-select" style="width:100%;padding:10px;border-radius:12px;margin-bottom:10px;">
+          <option value="normal-easy">Normal Easy (1 Roll)</option>
+          <option value="normal-medium">Normal Medium (3 Rolls)</option>
+          <option value="normal-hard">Normal Hard (5 Rolls)</option>
+          <option value="crazy-easy">Crazy Easy (Till First Double)</option>
+          <option value="crazy-medium">Crazy Medium (Till Specific Number)</option>
+          <option value="crazy-hard">Crazy Hard (Till Every Option Rolled)</option>
+        </select>
+
+        <input type="number" class="target-input" placeholder="Crazy Medium Target" style="width:100%;padding:10px;border-radius:12px;border:none;margin-bottom:10px;display:none;" />
+      `;
+
+      const modeSelect = modeContainer.querySelector('.mode-select');
+      const targetInput = modeContainer.querySelector('.target-input');
+
+      modeSelect.onchange = () => {
+        targetInput.style.display = modeSelect.value === 'crazy-medium' ? 'block' : 'none';
+      };
+
+      const result = document.createElement('div');
+      result.className = 'result';
+      result.innerHTML = '<div class="result-label">RESULT LIST</div><div class="result-text">No result yet</div>';
+
+      let locked = false;
+      let spinning = false;
+      let rotation = 0;
+
+      button.onclick = async () => {
+        if (locked || spinning) return;
+
+        const mode = modeSelect.value;
+        const history = [];
+        const resultCounts = {};
+        const rolledSet = new Set();
+        const counts = {};
+
+        spinning = true;
+        button.className = 'spin-btn spinning';
+        button.textContent = 'Spinning...';
+
+        async function singleRoll() {
+          return new Promise(resolve => {
+            const randomIndex = Math.floor(Math.random() * options.length);
+            const rolled = options[randomIndex];
+
+            const extraRotation = 720 + Math.floor(Math.random() * 360);
+            rotation += extraRotation;
+            wheel.style.transform = `rotate(${rotation}deg)`;
+
+            setTimeout(() => {
+              resolve(rolled);
+            }, 1000);
+          });
+        }
+
+        if (mode === 'normal-easy') {
+          {
+            const result = await singleRoll();
+            history.push(result);
+            resultCounts[result] = (resultCounts[result] || 0) + 1;
+          }
+        }
+
+        if (mode === 'normal-medium') {
+          for (let i = 0; i < 3; i++) {
+            const result = await singleRoll();
+            history.push(result);
+            resultCounts[result] = (resultCounts[result] || 0) + 1;
+          }
+        }
+
+        if (mode === 'normal-hard') {
+          for (let i = 0; i < 5; i++) {
+            const result = await singleRoll();
+            history.push(result);
+            resultCounts[result] = (resultCounts[result] || 0) + 1;
+          }
+        }
+
+        if (mode === 'crazy-easy') {
+          while (true) {
+            const rolled = await singleRoll();
+            history.push(rolled);
+            resultCounts[rolled] = (resultCounts[rolled] || 0) + 1;
+            counts[rolled] = (counts[rolled] || 0) + 1;
+
+            if (counts[rolled] >= 2) break;
+          }
+        }
+
+        if (mode === 'crazy-medium') {
+          const target = parseInt(targetInput.value) || 10;
+
+          for (let i = 0; i < target; i++) {
+            {
+            const result = await singleRoll();
+            history.push(result);
+            resultCounts[result] = (resultCounts[result] || 0) + 1;
+          }
+          }
+        }
+
+        if (mode === 'crazy-hard') {
+          while (rolledSet.size < options.length) {
+            const rolled = await singleRoll();
+            history.push(rolled);
+            resultCounts[rolled] = (resultCounts[rolled] || 0) + 1;
+            rolledSet.add(rolled);
+          }
+        }
+
+        spinning = false;
+        locked = true;
+
+        button.className = 'spin-btn locked';
+        button.textContent = 'Locked';
+
+        const sortedResults = Object.entries(resultCounts)
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, count]) => `${name} — ${count}x`)
+          .join('<br>');
+
+        result.innerHTML = `
+          <div class="result-label">SORTED RESULTS</div>
+          <div class="result-text" style="font-size:16px;line-height:1.8;">
+            ${sortedResults}
+          </div>
+        `;
+      };
+
+      card.appendChild(title);
+      card.appendChild(wrapper);
+      card.appendChild(modeContainer);
+      card.appendChild(button);
+      card.appendChild(result);
+
+      wheelGrid.appendChild(card);
+
+      wheels.push({
+        wheel,
+        button,
+        result,
+        options,
+        get locked() { return locked; },
+        set locked(v) { locked = v; },
+        get spinning() { return spinning; },
+        set spinning(v) { spinning = v; },
+        get rotation() { return rotation; },
+        set rotation(v) { rotation = v; }
+      });
+    }
+
+    function resetAll() {
+      wheelGrid.innerHTML = '';
+      wheels.length = 0;
+
+      for (let i = 0; i < 20; i++) {
+        createWheel(i);
+      }
+    }
+
+    resetAll();
+  </script>
+</body>
+</html>
